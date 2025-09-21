@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineX - AI Rockfall Prediction & Alert System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F5F6FA;
+            color: #1C1C1E;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, #1C1C1E 0%, #2C3E50 100%);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FFC107;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            text-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+        }
+
+        .logo::before {
+            content: "⚠️";
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #F5F6FA;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: #FFC107;
+            color: #1C1C1E;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        main {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .section {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Mine Information Card */
+        .mine-info-card {
+            background: linear-gradient(135deg, #1C1C1E 0%, #2C3E50 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 3px solid #FFC107;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mine-info-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 193, 7, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .mine-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .mine-details {
+            flex: 1;
+        }
+
+        .mine-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FFC107;
+            margin-bottom: 0.5rem;
+        }
+
+        .mine-location {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mine-location::before {
+            content: "📍";
+            font-size: 1rem;
+        }
+
+        .mine-updated {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mine-updated::before {
+            content: "🕒";
+            font-size: 0.8rem;
+        }
+
+        .mine-status {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ECC71;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .status-indicator {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-text {
+            font-weight: bold;
+            color: #2ECC71;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #2C3E50 0%, #1C1C1E 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin: -2rem -2rem 2rem -2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="0,0 100,0 100,20 0,30" fill="%23FFC107" opacity="0.1"/><polygon points="0,70 100,60 100,100 0,100" fill="%232ECC71" opacity="0.1"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #FFC107;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #FFC107, #FFD54F);
+            color: #1C1C1E;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 193, 7, 0.4);
+        }
+
+        /* Weather Summary Cards */
+        .weather-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .weather-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border-left: 5px solid #FFC107;
+        }
+
+        .weather-card h3 {
+            color: #2C3E50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .weather-params {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .weather-param {
+            text-align: center;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .weather-param .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2C3E50;
+        }
+
+        .weather-param .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        /* Interactive Map */
+        .map-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            height: 300px;
+            border-left: 5px solid #2ECC71;
+        }
+
+        .map-container h3 {
+            color: #2C3E50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #mine-map {
+            height: 250px;
+            border-radius: 10px;
+        }
+
+        /* Alert Banners */
+        .alert-banner {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: bold;
+            border-left: 5px solid;
+        }
+
+        .alert-banner.high {
+            background-color: #E74C3C;
+            color: white;
+            border-left-color: #C0392B;
+            animation: flash 1s infinite;
+        }
+
+        .alert-banner.medium {
+            background-color: #FFC107;
+            color: #1C1C1E;
+            border-left-color: #F39C12;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-banner.low {
+            background-color: #2ECC71;
+            color: white;
+            border-left-color: #27AE60;
+        }
+
+        .alert-banner.caution {
+            background-color: #FF9800;
+            color: white;
+            border-left-color: #F57C00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+
+        @keyframes flash {
+            0%, 50% { opacity: 1; }
+            25%, 75% { opacity: 0.3; }
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border-left: 5px solid #2C3E50;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2C3E50;
+        }
+
+        .risk-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .risk-low {
+            background-color: #2ECC71;
+            color: white;
+        }
+
+        .risk-medium {
+            background-color: #FFC107;
+            color: #1C1C1E;
+            animation: pulse 2s infinite;
+        }
+
+        .risk-high {
+            background-color: #E74C3C;
+            color: white;
+            animation: flash 1s infinite;
+        }
+
+        .risk-caution {
+            background-color: #FF9800;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        /* Weather Forecast Chart */
+        .weather-forecast-section {
+            margin-top: 2rem;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Team Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .team-member {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .member-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #2C3E50, #FFC107);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2C3E50;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FFC107;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #2C3E50, #34495e);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+        }
+
+        .btn-yellow {
+            background: linear-gradient(45deg, #FFC107, #FFD54F);
+            color: #1C1C1E;
+        }
+
+        /* Reports */
+        .report-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2C3E50;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFC107;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background-color: #2ECC71;
+        }
+
+        .status-offline {
+            background-color: #E74C3C;
+        }
+
+        .status-caution {
+            background-color: #FF9800;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .weather-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .forecast-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mine-info-header {
+                flex-direction: column;
+            }
+
+            .mine-status {
+                min-width: unset;
+                width: 100%;
+            }
+        }
+
+        /* Siren Audio Control */
+        .audio-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .siren-active .audio-controls {
+            display: block;
+        }
+
+        /* Threshold crossed indicators */
+        .threshold-warning {
+            border: 2px solid #FF9800 !important;
+            background: linear-gradient(45deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1)) !important;
+        }
+
+        .critical-alert {
+            border: 2px solid #E74C3C !important;
+            background: linear-gradient(45deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)) !important;
+            animation: flash 1s infinite;
+        }
+
+        /* Data freshness indicator */
+        .data-freshness {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .data-fresh {
+            color: #2ECC71;
+        }
+
+        .data-stale {
+            color: #E74C3C;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo" onclick="showSection('home')">MineX</div>
+            <ul class="nav-links">
+                <li><a href="#" onclick="showSection('home')" class="active">Home</a></li>
+                <li><a href="#" onclick="showSection('dashboard')">Dashboard</a></li>
+                <li><a href="#" onclick="showSection('ai-prediction')">AI Prediction</a></li>
+                <li><a href="#" onclick="showSection('reports')">Reports</a></li>
+                <li><a href="#" onclick="showSection('team')">Team</a></li>
+                <li><a href="#" onclick="showSection('contact')">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>AI-Powered Mine Safety</h1>
+                    <p>Real-time rockfall prediction and alert system for open-pit mines using advanced AI and IoT sensors</p>
+                    <button class="cta-button" onclick="showSection('dashboard')">View Live Dashboard</button>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🎯 Mission</h3>
+                    <p>Preventing mining accidents through predictive AI technology that analyzes weather patterns, geological data, and real-time sensor feeds to forecast rockfall events before they occur.</p>
+                </div>
+                <div class="card">
+                    <h3>⚡ Technology</h3>
+                    <p>Advanced machine learning algorithms combined with IoT sensors, weather APIs, and seismic monitoring to provide 24/7 automated risk assessment and instant alerts.</p>
+                </div>
+                <div class="card">
+                    <h3>🛡️ Safety First</h3>
+                    <p>Multi-tier alert system with SMS, email, and on-site sirens ensuring that mine workers receive immediate warnings when dangerous conditions are detected.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <h2 style="margin-bottom: 2rem; color: #2C3E50;">Live Monitoring Dashboard</h2>
+            
+            <!-- Mine Information Card -->
+            <div class="mine-info-card" id="mine-info-card">
+                <div class="mine-info-header">
+                    <div class="mine-details">
+                        <div class="mine-name" id="mine-name">Loading Mine Information...</div>
+                        <div class="mine-location" id="mine-location">Fetching location data...</div>
+                        <div class="mine-updated" id="mine-updated">Last Updated: --:--</div>
+                        <div class="data-freshness" id="data-freshness">
+                            <span class="status-dot status-online"></span>
+                            <span>Data fresh</span>
+                        </div>
+                    </div>
+                    <div class="mine-status" id="mine-status">
+                        <div class="status-indicator">🟢</div>
+                        <div class="status-text">OPERATIONAL</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">All systems active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Summary Cards -->
+            <div class="weather-summary">
+                <div class="weather-card" id="current-weather-card">
+                    <h3>🌤️ Current Weather Conditions</h3>
+                    <div class="weather-params">
+                        <div class="weather-param" id="weather-temp-param">
+                            <div class="value" id="current-temp">--°C</div>
+                            <div class="label">Temperature</div>
+                        </div>
+                        <div class="weather-param" id="weather-humidity-param">
+                            <div class="value" id="current-humidity">--%</div>
+                            <div class="label">Humidity</div>
+                        </div>
+                        <div class="weather-param" id="weather-wind-param">
+                            <div class="value" id="current-wind">-- km/h</div>
+                            <div class="label">Wind Speed</div>
+                        </div>
+                        <div class="weather-param" id="weather-rain-param">
+                            <div class="value" id="current-rainfall">-- mm</div>
+                            <div class="label">Rainfall (1h)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="map-container">
+                    <h3>🗺️ Mine Location</h3>
+                    <div id="mine-map"></div>
+                </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div class="alert-banner low" id="main-alert">
+                <div style="font-size: 1.5rem;">🟢</div>
+                <div>
+                    <div style="font-size: 1.1rem;">Current Status: <span id="overall-status-text">SAFE</span></div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;" id="alert-description">All systems operational - No immediate threats detected</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🌡️ Environmental Data</div>
+                        <div class="risk-indicator risk-low" id="weather-risk">NORMAL</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 0.9rem; color: #666;">Temperature</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="dash-temp">25°C</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: #666;">Humidity</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="dash-humidity">60%</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: #666;">Wind</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="dash-wind">12 km/h</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        Precipitation: <span id="dash-precipitation">0mm</span> | 
+                        Pressure: <span id="dash-pressure">1013 hPa</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📊 Seismic Activity</div>
+                        <div class="risk-indicator risk-low" id="seismic-risk">STABLE</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 0.9rem; color: #666;">Vibration Level</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="vibration-level">0.02g</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; color: #666;">Frequency</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="vibration-freq">2.1 Hz</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="status-dot status-online" id="sensor-status"></span>
+                        <span style="font-size: 0.9rem; color: #666;" id="sensor-status-text">Sensors Online</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🤖 AI Risk Assessment</div>
+                        <div class="risk-indicator risk-low" id="ai-risk">15% RISK</div>
+                    </div>
+                    <div style="text-align: center; margin: 1rem 0;">
+                        <div style="font-size: 3rem; color: #2ECC71;" id="risk-percentage">15</div>
+                        <div style="color: #666;">Risk Probability (%)</div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        Next prediction update: <span id="next-update">2 min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Forecast Section -->
+            <div class="weather-forecast-section">
+                <div class="forecast-grid">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">📈 Weather Trends (24h)</h3>
+                        <div class="chart-container">
+                            <canvas id="weatherTrendsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">📊 Risk Trends (24h)</h3>
+                        <div class="chart-container">
+                            <canvas id="riskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Prediction Section -->
+        <section id="ai-prediction" class="section">
+            <h2 style="margin-bottom: 2rem; color: #2C3E50;">AI Prediction Module</h2>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🧠 Model Information</h3>
+                    <p><strong>Type:</strong> LSTM Time-Series + Random Forest Classification</p>
+                    <p><strong>Accuracy:</strong> 94.2%</p>
+                    <p><strong>Training Data:</strong> 2 years of historical weather + seismic data</p>
+                    <p><strong>Update Frequency:</strong> Every 60 seconds</p>
+                    <p><strong>Status:</strong> <span style="color: #2ECC71;">●</span> Active</p>
+                </div>
+                
+                <div class="card">
+                    <h3>⚙️ Current Analysis</h3>
+                    <div style="margin: 1rem 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Weather Risk Factor</span>
+                            <span style="color: #2ECC71;" id="weather-risk-factor">Low (12%)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Geological Stability</span>
+                            <span style="color: #2ECC71;" id="geological-stability">Stable (8%)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Historical Pattern</span>
+                            <span style="color: #FFC107;" id="historical-pattern">Moderate (28%)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Sensor Anomalies</span>
+                            <span style="color: #2ECC71;" id="sensor-anomalies">None (0%)</span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px solid #eee; padding-top: 1rem; font-weight: bold;">
+                        Combined Risk Score: <span style="color: #2ECC71;" id="combined-risk-score">15%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">📊 Prediction History</h3>
+                <div class="chart-container">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🔮 24-Hour Forecast</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">Now</div>
+                        <div style="color: #2ECC71; font-weight: bold;" id="forecast-now">15%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+4h</div>
+                        <div style="color: #2ECC71; font-weight: bold;" id="forecast-4h">18%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+8h</div>
+                        <div style="color: #FFC107; font-weight: bold;" id="forecast-8h">35%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+12h</div>
+                        <div style="color: #FFC107; font-weight: bold;" id="forecast-12h">42%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+16h</div>
+                        <div style="color: #2ECC71; font-weight: bold;" id="forecast-16h">28%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+20h</div>
+                        <div style="color: #2ECC71; font-weight: bold;" id="forecast-20h">22%</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 0.8rem; color: #666;">+24h</div>
+                        <div style="color: #2ECC71; font-weight: bold;" id="forecast-24h">19%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="section">
+            <h2 style="margin-bottom: 2rem; color: #2C3E50;">Reports & Analytics</h2>
+            
+            <div class="report-actions">
+                <button class="btn btn-yellow" onclick="generateReport('daily')">Generate Daily Report</button>
+                <button class="btn" onclick="generateReport('weekly')">Weekly Summary</button>
+                <button class="btn" onclick="generateReport('monthly')">Monthly Analysis</button>
+                <button class="btn" onclick="exportData('csv')">Export CSV</button>
+                <button class="btn" onclick="exportData('pdf')">Export PDF</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #2ECC71;">142</div>
+                    <div class="stat-label">Safe Days</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #FFC107;">23</div>
+                    <div class="stat-label">Warning Alerts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #E74C3C;">3</div>
+                    <div class="stat-label">High Risk Events</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #2C3E50;">98.7%</div>
+                    <div class="stat-label">System Uptime</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>📊 Risk Distribution (Last 30 Days)</h3>
+                    <div class="chart-container">
+                        <canvas id="riskDistribution"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📈 Monthly Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="monthlyTrends"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 Recent Alerts Log</h3>
+                <div style="overflow-x: auto; margin-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background-color: #f9f9f9;">
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #ddd;">Date & Time</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #ddd;">Risk Level</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #ddd;">Trigger</th>
+                                <th style="padding: 1rem; text-align: left; border-bottom: 1px solid #ddd;">Action Taken</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">2024-03-15 14:32</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;"><span style="color: #FFC107;">⚠️ Medium</span></td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Heavy rainfall detected</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">SMS alerts sent to 12 workers</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">2024-03-14 09:15</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;"><span style="color: #2ECC71;">✅ Low</span></td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Seismic sensor calibration</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">System notification logged</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">2024-03-13 16:45</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;"><span style="color: #E74C3C;">🚨 High</span></td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Anomalous vibration pattern</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Area evacuation initiated</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section id="team" class="section">
+            <h2 style="margin-bottom: 2rem; color: #2C3E50; text-align: center;">Team MineX</h2>
+            <p style="text-align: center; margin-bottom: 3rem; font-size: 1.2rem; color: #666;">Smart India Hackathon 2024 - Innovating for Mine Safety</p>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">👩‍💼</div>
+                    <h3>Khushi Tailor</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Team Lead & Coordinator</p>
+                    <p>Ensures smooth workflow, manages project milestones, oversees documentation, and leads communication with mentors and stakeholders.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨🔬💻</div>
+                    <h3>Jitin Singh</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Domain Researcher & Dashboard Developer</p>
+                    <p>Focuses on mining hazards and rockfall causes, collects case studies, and ensures real-world relevance. Also contributes to the development of the monitoring dashboard for accurate data visualization.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💻</div>
+                    <h3>Shreyansh Sharma</h3>
+                    <p style="color: #FFC107; font-weight: bold;">AI/ML Engineer</p>
+                    <p>Designs and implements predictive models using time-series forecasting, anomaly detection, and machine learning to estimate rockfall risks.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💻</div>
+                    <h3>Jayant Goyal</h3>
+                    <p style="color: #FFC107; font-weight: bold;">IoT & Sensors Lead</p>
+                    <p>Works on integration of IoT devices and simulations (seismic vibrations, slope monitoring, weather sensors) for real-time data collection.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💻</div>
+                    <h3>Devesh Jain</h3>
+                    <p style="color: #FFC107; font-weight: bold;">App & Dashboard Developer</p>
+                    <p>Develops the monitoring dashboard and alert system (web/mobile), integrates APIs, and ensures a seamless user experience for mine operators</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💼💻</div>
+                    <h3>Utkarsh Sharma</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Presentation, AI/ML & IoT Support</p>
+                    <p>Crafts impactful presentations, flow diagrams, and visual storytelling for SIH. Also assists in AI/ML model research and IoT sensor integration to strengthen the predictive system.</p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 3rem; text-align: center;">
+                <h3>🏆 Smart India Hackathon 2024</h3>
+                <p style="margin: 1rem 0;">Problem Statement: AI-Based Rockfall Prediction and Alert System for Open-Pit Mines</p>
+                <p style="color: #666;">Our team is dedicated to revolutionizing mine safety through innovative AI solutions that protect workers and optimize mining operations.</p>
+                <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                    <div style="background: #f9f9f9; padding: 1rem; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2C3E50;">Category</div>
+                        <div style="color: #666;">Software</div>
+                    </div>
+                    <div style="background: #f9f9f9; padding: 1rem; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2C3E50;">Theme</div>
+                        <div style="color: #666;">Mining & Safety</div>
+                    </div>
+                    <div style="background: #f9f9f9; padding: 1rem; border-radius: 10px;">
+                        <div style="font-weight: bold; color: #2C3E50;">Technology</div>
+                        <div style="color: #666;">AI/ML + IoT</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <h2 style="margin-bottom: 2rem; color: #2C3E50;">Contact Us</h2>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>📧 Get In Touch</h3>
+                    <form id="contactForm" onsubmit="submitContact(event)">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="organization">Organization</label>
+                            <input type="text" id="organization" name="organization">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select Subject</option>
+                                <option value="demo">Request Demo</option>
+                                <option value="partnership">Partnership Inquiry</option>
+                                <option value="technical">Technical Support</option>
+                                <option value="general">General Question</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-yellow">Send Message</button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h3>📍 Contact Information</h3>
+                    <div style="margin: 2rem 0;">
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <span style="margin-right: 1rem; font-size: 1.2rem;">📧</span>
+                            <div>
+                                <div style="font-weight: bold;">Email</div>
+                                <div style="color: #666;">team@minex.ai</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <span style="margin-right: 1rem; font-size: 1.2rem;">📱</span>
+                            <div>
+                                <div style="font-weight: bold;">Phone</div>
+                                <div style="color: #666;">+91 98765 43210</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <span style="margin-right: 1rem; font-size: 1.2rem;">🏢</span>
+                            <div>
+                                <div style="font-weight: bold;">Address</div>
+                                <div style="color: #666;">IIT Innovation Hub<br>Technology Park, India</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <span style="margin-right: 1rem; font-size: 1.2rem;">🌐</span>
+                            <div>
+                                <div style="font-weight: bold;">Website</div>
+                                <div style="color: #666;">www.minex.ai</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #eee; padding-top: 1rem; margin-top: 2rem;">
+                        <h4 style="color: #E74C3C;">🚨 Emergency Contacts</h4>
+                        <p style="color: #666; margin-top: 0.5rem;">For immediate mine safety emergencies:</p>
+                        <p style="font-weight: bold; color: #E74C3C;">Emergency Hotline: +91 98765 43211</p>
+                        <p style="color: #666; font-size: 0.9rem;">Available 24/7 for critical safety incidents</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Interested in Our Solution?</h3>
+                <p style="margin-bottom: 2rem;">MineX is ready for deployment in mining operations worldwide. Contact us for:</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚀</div>
+                        <div style="font-weight: bold;">System Demo</div>
+                        <div style="color: #666; font-size: 0.9rem;">Live demonstration</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                        <div style="font-weight: bold;">Pilot Program</div>
+                        <div style="color: #666; font-size: 0.9rem;">Trial implementation</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🛠️</div>
+                        <div style="font-weight: bold;">Custom Solution</div>
+                        <div style="color: #666; font-size: 0.9rem;">Tailored for your mine</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 10px;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🤝</div>
+                        <div style="font-weight: bold;">Partnership</div>
+                        <div style="color: #666; font-size: 0.9rem;">Strategic collaboration</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Audio element for siren -->
+    <!-- Audio element for siren -->
+    <audio id="sirenAudio" loop>
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEbBjiNzfDSfTEGHWrH8N2PQQ0UUaiE0qxbGAU1id3wuVIZBAA=" type="audio/wav">
+    </audio>
+
+    <!-- Audio controls for siren -->
+    <div class="audio-controls" id="audioControls">
+        <button onclick="toggleSiren()" id="sirenToggle">🔇 Stop Siren</button>
+    </div>
+
+    <script>
+        // Global variables
+        let riskChart, predictionChart, riskDistributionChart, monthlyTrendsChart, weatherTrendsChart;
+        let currentRiskLevel = 15;
+        let currentOverallStatus = 'SAFE';
+        let sirenActive = false;
+        let mineMap;
+        
+        // Mine and weather data
+        let mineData = {
+            name: 'Kusmunda Open-Pit Mine',
+            location: 'Korba, Chhattisgarh',
+            coordinates: { lat: 22.3511, lon: 82.6677 },
+            lastUpdated: new Date(),
+            status: 'OPERATIONAL'
+        };
+
+        let weatherData = {
+            current: {
+                temperature: 28,
+                humidity: 65,
+                windSpeed: 12,
+                rainfall: 0,
+                pressure: 1013
+            },
+            forecast: [],
+            trends: []
+        };
+
+        let sensorData = {
+            temperature: 25,
+            humidity: 60,
+            windSpeed: 12,
+            precipitation: 0,
+            pressure: 1013,
+            vibrationLevel: 0.02,
+            vibrationFreq: 2.1
+        };
+
+        // Threshold values for alerts
+        const thresholds = {
+            rainfall: 15, // mm/h for caution
+            windSpeed: 30, // km/h for caution
+            temperature: 40, // °C for caution
+            vibration: 0.05, // g for caution
+            riskLevel: {
+                low: 30,
+                high: 70
+            }
+        };
+
+        // API simulation functions
+        async function fetchMineInfo() {
+            try {
+                // Simulate API call to /api/mine-info
+                // In real implementation, this would be:
+                // const response = await fetch('/api/mine-info');
+                // const data = await response.json();
+                
+                // Simulated API response
+                const apiResponse = {
+                    mineName: 'Kusmunda Open-Pit Mine',
+                    location: 'Korba, Chhattisgarh',
+                    coordinates: {
+                        lat: 22.3511,
+                        lon: 82.6677
+                    },
+                    lastUpdated: new Date().toISOString(),
+                    status: 'OPERATIONAL'
+                };
+
+                mineData = {
+                    name: apiResponse.mineName,
+                    location: apiResponse.location,
+                    coordinates: apiResponse.coordinates,
+                    lastUpdated: new Date(apiResponse.lastUpdated),
+                    status: apiResponse.status
+                };
+
+                updateMineInfoDisplay();
+                await fetchWeatherData(mineData.coordinates.lat, mineData.coordinates.lon);
+                initializeMap();
+                
+            } catch (error) {
+                console.error('Error fetching mine info:', error);
+                // Fallback to default data
+                updateMineInfoDisplay();
+                await fetchWeatherData();
+                initializeMap();
+            }
+        }
+
+        async function fetchWeatherData(lat = 22.3511, lon = 82.6677) {
+            try {
+                // In real implementation, use your OpenWeather API key:
+                // const API_KEY = 'your_openweather_api_key';
+                // const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+                // const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+
+                // Simulate current weather data
+                const currentWeather = {
+                    main: {
+                        temp: Math.round(25 + Math.random() * 10), // 25-35°C
+                        humidity: Math.round(40 + Math.random() * 40), // 40-80%
+                        pressure: Math.round(1000 + Math.random() * 30) // 1000-1030 hPa
+                    },
+                    weather: [
+                        {
+                            main: Math.random() > 0.7 ? 'Rain' : 'Clear',
+                            description: Math.random() > 0.7 ? 'light rain' : 'clear sky',
+                            icon: Math.random() > 0.7 ? '10d' : '01d'
+                        }
+                    ],
+                    wind: {
+                        speed: Math.round(5 + Math.random() * 20) // 5-25 km/h
+                    },
+                    rain: Math.random() > 0.8 ? { '1h': Math.round(Math.random() * 20) } : undefined
+                };
+
+                // Simulate 24-hour forecast data
+                const forecastData = [];
+                const trendData = [];
+                
+                for (let i = 0; i < 24; i++) {
+                    const hour = new Date();
+                    hour.setHours(hour.getHours() + i);
+                    
+                    const temp = 25 + Math.sin(i * 0.26) * 8 + Math.random() * 4; // Temperature cycle
+                    const rainfall = Math.random() > 0.8 ? Math.random() * 15 : 0;
+                    
+                    forecastData.push({
+                        time: hour,
+                        temperature: temp,
+                        rainfall: rainfall,
+                        windSpeed: 10 + Math.random() * 15,
+                        humidity: 50 + Math.random() * 30
+                    });
+                    
+                    trendData.push({
+                        time: hour.getHours() + ':00',
+                        rainfall: rainfall,
+                        temperature: temp
+                    });
+                }
+
+                weatherData.current = {
+                    temperature: currentWeather.main.temp,
+                    humidity: currentWeather.main.humidity,
+                    windSpeed: currentWeather.wind.speed,
+                    rainfall: currentWeather.rain ? currentWeather.rain['1h'] : 0,
+                    pressure: currentWeather.main.pressure
+                };
+                
+                weatherData.forecast = forecastData;
+                weatherData.trends = trendData;
+
+                updateWeatherDisplay();
+                updateDashboardWeather();
+                
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                // Use fallback weather data
+                updateWeatherDisplay();
+                updateDashboardWeather();
+            }
+        }
+
+        // UI Update functions
+        function updateMineInfoDisplay() {
+            document.getElementById('mine-name').textContent = mineData.name;
+            document.getElementById('mine-location').textContent = mineData.location;
+            document.getElementById('mine-updated').textContent = `Last Updated: ${mineData.lastUpdated.toLocaleString()}`;
+            
+            // Update data freshness indicator
+            const timeDiff = Date.now() - mineData.lastUpdated.getTime();
+            const dataFreshnessElement = document.getElementById('data-freshness');
+            
+            if (timeDiff < 10 * 60 * 1000) { // Less than 10 minutes
+                dataFreshnessElement.innerHTML = '<span class="status-dot status-online"></span><span class="data-fresh">Data fresh</span>';
+            } else {
+                dataFreshnessElement.innerHTML = '<span class="status-dot status-offline"></span><span class="data-stale">Data stale</span>';
+            }
+        }
+
+        function updateWeatherDisplay() {
+            document.getElementById('current-temp').textContent = `${weatherData.current.temperature}°C`;
+            document.getElementById('current-humidity').textContent = `${weatherData.current.humidity}%`;
+            document.getElementById('current-wind').textContent = `${weatherData.current.windSpeed} km/h`;
+            document.getElementById('current-rainfall').textContent = `${weatherData.current.rainfall} mm`;
+        }
+
+        function updateDashboardWeather() {
+            sensorData.temperature = weatherData.current.temperature;
+            sensorData.humidity = weatherData.current.humidity;
+            sensorData.windSpeed = weatherData.current.windSpeed;
+            sensorData.precipitation = weatherData.current.rainfall;
+            sensorData.pressure = weatherData.current.pressure;
+
+            document.getElementById('dash-temp').textContent = `${weatherData.current.temperature}°C`;
+            document.getElementById('dash-humidity').textContent = `${weatherData.current.humidity}%`;
+            document.getElementById('dash-wind').textContent = `${weatherData.current.windSpeed} km/h`;
+            document.getElementById('dash-precipitation').textContent = `${weatherData.current.rainfall}mm`;
+            document.getElementById('dash-pressure').textContent = `${weatherData.current.pressure} hPa`;
+
+            // Check for weather threshold violations
+            checkWeatherThresholds();
+        }
+
+        function checkWeatherThresholds() {
+            const weatherCard = document.getElementById('current-weather-card');
+            const tempParam = document.getElementById('weather-temp-param');
+            const windParam = document.getElementById('weather-wind-param');
+            const rainParam = document.getElementById('weather-rain-param');
+            
+            let weatherRisk = 'NORMAL';
+            let riskClass = 'risk-low';
+            let cautionDetected = false;
+
+            // Temperature check
+            if (weatherData.current.temperature > thresholds.temperature) {
+                tempParam.classList.add('threshold-warning');
+                cautionDetected = true;
+            } else {
+                tempParam.classList.remove('threshold-warning');
+            }
+
+            // Wind speed check
+            if (weatherData.current.windSpeed > thresholds.windSpeed) {
+                windParam.classList.add('threshold-warning');
+                cautionDetected = true;
+            } else {
+                windParam.classList.remove('threshold-warning');
+            }
+
+            // Rainfall check
+            if (weatherData.current.rainfall > thresholds.rainfall) {
+                rainParam.classList.add('threshold-warning');
+                cautionDetected = true;
+            } else {
+                rainParam.classList.remove('threshold-warning');
+            }
+
+            if (cautionDetected) {
+                weatherRisk = 'CAUTION';
+                riskClass = 'risk-caution';
+                weatherCard.classList.add('threshold-warning');
+                
+                // Show caution alert
+                showCautionAlert();
+            } else {
+                weatherCard.classList.remove('threshold-warning');
+            }
+
+            document.getElementById('weather-risk').textContent = weatherRisk;
+            document.getElementById('weather-risk').className = `risk-indicator ${riskClass}`;
+        }
+
+        // Navigation functionality
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav link
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // If called programmatically, find and activate the corresponding nav link
+                const navLink = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
+                if (navLink) navLink.classList.add('active');
+            }
+            
+            // Initialize charts and maps if needed
+            setTimeout(() => {
+                if (sectionId === 'dashboard') {
+                    initializeDashboardCharts();
+                    if (!mineMap) initializeMap();
+                } else if (sectionId === 'ai-prediction') {
+                    initializePredictionCharts();
+                } else if (sectionId === 'reports') {
+                    initializeReportCharts();
+                }
+            }, 100);
+        }
+
+        // Map initialization
+        function initializeMap() {
+            if (mineMap) {
+                mineMap.remove();
+            }
+
+            try {
+                mineMap = L.map('mine-map').setView([mineData.coordinates.lat, mineData.coordinates.lon], 13);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mineMap);
+
+                // Add mine marker
+                const mineIcon = L.divIcon({
+                    html: '🏭',
+                    className: 'mine-marker',
+                    iconSize: [30, 30]
+                });
+
+                L.marker([mineData.coordinates.lat, mineData.coordinates.lon], { icon: mineIcon })
+                    .addTo(mineMap)
+                    .bindPopup(`<b>${mineData.name}</b><br>${mineData.location}`)
+                    .openPopup();
+
+                // Resize map when container is visible
+                setTimeout(() => {
+                    mineMap.invalidateSize();
+                }, 100);
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                document.getElementById('mine-map').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Map unavailable</div>';
+            }
+        }
+
+        // Alert system functions
+        function showCautionAlert() {
+            const alertBanner = document.getElementById('main-alert');
+            alertBanner.className = 'alert-banner caution';
+            alertBanner.innerHTML = `
+                <div style="font-size: 1.5rem;">🟡</div>
+                <div>
+                    <div style="font-size: 1.1rem;">Weather Alert: <span>CAUTION</span></div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">Weather conditions exceed safety thresholds - Enhanced monitoring active</div>
+                </div>
+            `;
+        }
+
+        function updateOverallStatus() {
+            // Combine weather, seismic, and AI risk data
+            const weatherCaution = weatherData.current.rainfall > thresholds.rainfall || 
+                                 weatherData.current.windSpeed > thresholds.windSpeed ||
+                                 weatherData.current.temperature > thresholds.temperature;
+            
+            const seismicCaution = sensorData.vibrationLevel > thresholds.vibration;
+            const highRisk = currentRiskLevel >= thresholds.riskLevel.high;
+            const mediumRisk = currentRiskLevel >= thresholds.riskLevel.low;
+
+            let status = 'SAFE';
+            let alertClass = 'low';
+            let alertIcon = '🟢';
+            let alertMessage = 'All systems operational - No immediate threats detected';
+
+            if (highRisk || (weatherCaution && seismicCaution)) {
+                status = 'CRITICAL';
+                alertClass = 'high';
+                alertIcon = '🔴';
+                alertMessage = 'CRITICAL ALERT: Immediate evacuation required!';
+                triggerSiren();
+            } else if (mediumRisk || weatherCaution || seismicCaution) {
+                status = 'ELEVATED';
+                alertClass = 'medium';
+                alertIcon = '🟡';
+                alertMessage = 'Elevated risk conditions - Enhanced safety protocols active';
+            }
+
+            currentOverallStatus = status;
+            
+            const alertBanner = document.getElementById('main-alert');
+            alertBanner.className = `alert-banner ${alertClass}`;
+            alertBanner.innerHTML = `
+                <div style="font-size: 1.5rem;">${alertIcon}</div>
+                <div>
+                    <div style="font-size: 1.1rem;">Current Status: <span id="overall-status-text">${status}</span></div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;" id="alert-description">${alertMessage}</div>
+                </div>
+            `;
+
+            // Update mine status card
+            const mineStatusCard = document.getElementById('mine-status');
+            if (status === 'CRITICAL') {
+                mineStatusCard.innerHTML = `
+                    <div class="status-indicator">🔴</div>
+                    <div class="status-text" style="color: #E74C3C;">CRITICAL</div>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">Emergency protocols active</div>
+                `;
+                mineStatusCard.style.background = 'rgba(231, 76, 60, 0.2)';
+                mineStatusCard.style.border = '2px solid #E74C3C';
+            } else if (status === 'ELEVATED') {
+                mineStatusCard.innerHTML = `
+                    <div class="status-indicator">🟡</div>
+                    <div class="status-text" style="color: #FFC107;">ELEVATED</div>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">Enhanced monitoring</div>
+                `;
+                mineStatusCard.style.background = 'rgba(255, 193, 7, 0.2)';
+                mineStatusCard.style.border = '2px solid #FFC107';
+            } else {
+                mineStatusCard.innerHTML = `
+                    <div class="status-indicator">🟢</div>
+                    <div class="status-text" style="color: #2ECC71;">OPERATIONAL</div>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">All systems active</div>
+                `;
+                mineStatusCard.style.background = 'rgba(46, 204, 113, 0.2)';
+                mineStatusCard.style.border = '2px solid #2ECC71';
+                stopSiren();
+            }
+        }
+
+        // Siren control functions
+        function triggerSiren() {
+            if (!sirenActive) {
+                sirenActive = true;
+                document.body.classList.add('siren-active');
+                
+                const audio = document.getElementById('sirenAudio');
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+                
+                document.getElementById('sirenToggle').innerHTML = '🔇 Stop Siren';
+            }
+        }
+
+        function stopSiren() {
+            if (sirenActive) {
+                sirenActive = false;
+                document.body.classList.remove('siren-active');
+                
+                const audio = document.getElementById('sirenAudio');
+                audio.pause();
+                audio.currentTime = 0;
+                
+                document.getElementById('sirenToggle').innerHTML = '🔊 Test Siren';
+            }
+        }
+
+        function toggleSiren() {
+            if (sirenActive) {
+                stopSiren();
+            } else {
+                triggerSiren();
+            }
+        }
+
+        // Simulated sensor data updates
+        function updateSensorData() {
+            // Simulate vibration data
+            sensorData.vibrationLevel = (0.01 + Math.random() * 0.05).toFixed(3);
+            sensorData.vibrationFreq = (1.5 + Math.random() * 2).toFixed(1);
+            
+            document.getElementById('vibration-level').textContent = `${sensorData.vibrationLevel}g`;
+            document.getElementById('vibration-freq').textContent = `${sensorData.vibrationFreq} Hz`;
+            
+            // Update seismic risk
+            let seismicRisk = 'STABLE';
+            let seismicRiskClass = 'risk-low';
+            let sensorStatus = 'status-online';
+            let sensorStatusText = 'Sensors Online';
+            
+            if (sensorData.vibrationLevel > thresholds.vibration) {
+                seismicRisk = 'UNSTABLE';
+                seismicRiskClass = 'risk-caution';
+                sensorStatus = 'status-caution';
+                sensorStatusText = 'High Vibration Detected';
+            }
+            
+            document.getElementById('seismic-risk').textContent = seismicRisk;
+            document.getElementById('seismic-risk').className = `risk-indicator ${seismicRiskClass}`;
+            document.getElementById('sensor-status').className = `status-dot ${sensorStatus}`;
+            document.getElementById('sensor-status-text').textContent = sensorStatusText;
+        }
+
+        // AI Risk calculation and updates
+        function updateAIRisk() {
+            // Simulate AI risk calculation based on various factors
+            let baseRisk = 10;
+            
+            // Weather factors
+            if (sensorData.temperature > 35) baseRisk += 8;
+            if (sensorData.windSpeed > 25) baseRisk += 10;
+            if (sensorData.precipitation > 10) baseRisk += 15;
+            
+            // Seismic factors
+            if (sensorData.vibrationLevel > 0.03) baseRisk += 12;
+            if (sensorData.vibrationLevel > 0.05) baseRisk += 25;
+            
+            // Add random variation
+            currentRiskLevel = Math.min(95, Math.max(5, baseRisk + (Math.random() - 0.5) * 15));
+            currentRiskLevel = Math.round(currentRiskLevel);
+            
+            // Update UI elements
+            document.getElementById('risk-percentage').textContent = currentRiskLevel;
+            document.getElementById('ai-risk').textContent = `${currentRiskLevel}% RISK`;
+            document.getElementById('combined-risk-score').textContent = `${currentRiskLevel}%`;
+            
+            // Update risk level indicator
+            let riskClass = 'risk-low';
+            let riskColor = '#2ECC71';
+            
+            if (currentRiskLevel >= 30 && currentRiskLevel < 70) {
+                riskClass = 'risk-medium';
+                riskColor = '#FFC107';
+            } else if (currentRiskLevel >= 70) {
+                riskClass = 'risk-high';
+                riskColor = '#E74C3C';
+            }
+            
+            document.getElementById('ai-risk').className = `risk-indicator ${riskClass}`;
+            document.getElementById('risk-percentage').style.color = riskColor;
+            document.getElementById('combined-risk-score').style.color = riskColor;
+            
+            // Update forecast values
+            document.getElementById('forecast-now').textContent = `${currentRiskLevel}%`;
+            document.getElementById('forecast-4h').textContent = `${Math.min(95, Math.max(5, currentRiskLevel + Math.random() * 10 - 5))}%`;
+            
+            // Update analysis factors
+            const weatherRiskFactor = Math.min(50, (sensorData.temperature - 25) * 2 + sensorData.precipitation + sensorData.windSpeed * 0.5);
+            const geologicalRisk = Math.min(40, sensorData.vibrationLevel * 500);
+            const historicalRisk = 28 + Math.sin(Date.now() / 100000) * 10; // Simulated historical pattern
+            const sensorAnomalies = sensorData.vibrationLevel > 0.04 ? 15 : 0;
+
+            document.getElementById('weather-risk-factor').textContent = `${weatherRiskFactor > 20 ? 'High' : weatherRiskFactor > 10 ? 'Moderate' : 'Low'} (${Math.round(weatherRiskFactor)}%)`;
+            document.getElementById('geological-stability').textContent = `${geologicalRisk > 20 ? 'Unstable' : 'Stable'} (${Math.round(geologicalRisk)}%)`;
+            document.getElementById('historical-pattern').textContent = `Moderate (${Math.round(historicalRisk)}%)`;
+            document.getElementById('sensor-anomalies').textContent = `${sensorAnomalies > 0 ? 'Detected' : 'None'} (${sensorAnomalies}%)`;
+
+            // Update colors based on risk levels
+            document.getElementById('weather-risk-factor').style.color = weatherRiskFactor > 20 ? '#E74C3C' : weatherRiskFactor > 10 ? '#FFC107' : '#2ECC71';
+            document.getElementById('geological-stability').style.color = geologicalRisk > 20 ? '#E74C3C' : '#2ECC71';
+            document.getElementById('sensor-anomalies').style.color = sensorAnomalies > 0 ? '#E74C3C' : '#2ECC71';
+
+            // Update next prediction timer
+            const nextUpdate = Math.floor(Math.random() * 5) + 1;
+            document.getElementById('next-update').textContent = `${nextUpdate} min`;
+
+            // Update overall status based on all factors
+            updateOverallStatus();
+        }
+
+        // Chart initialization functions
+        function initializeDashboardCharts() {
+            initializeWeatherTrendsChart();
+            initializeRiskChart();
+        }
+
+        function initializeWeatherTrendsChart() {
+            const ctx = document.getElementById('weatherTrendsChart');
+            if (!ctx) return;
+            
+            if (weatherTrendsChart) {
+                weatherTrendsChart.destroy();
+            }
+
+            const labels = weatherData.trends.slice(0, 12).map(item => item.time);
+            const rainfallData = weatherData.trends.slice(0, 12).map(item => item.rainfall);
+            const temperatureData = weatherData.trends.slice(0, 12).map(item => item.temperature);
+
+            weatherTrendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Rainfall (mm)',
+                            data: rainfallData,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Temperature (°C)',
+                            data: temperatureData,
+                            borderColor: '#FFC107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Rainfall (mm)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeRiskChart() {
+            const ctx = document.getElementById('riskChart');
+            if (!ctx) return;
+            
+            if (riskChart) {
+                riskChart.destroy();
+            }
+            
+            const hours = [];
+            const riskData = [];
+            
+            for (let i = 23; i >= 0; i--) {
+                const hour = new Date();
+                hour.setHours(hour.getHours() - i);
+                hours.push(hour.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+                riskData.push(Math.max(5, Math.min(85, currentRiskLevel + (Math.random() - 0.5) * 30)));
+            }
+            
+            riskChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: 'Risk Level (%)',
+                        data: riskData,
+                        borderColor: '#E74C3C',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 6
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializePredictionCharts() {
+            const ctx = document.getElementById('predictionChart');
+            if (!ctx) return;
+            
+            if (predictionChart) {
+                predictionChart.destroy();
+            }
+            
+            const days = [];
+            const actualData = [];
+            const predictedData = [];
+            
+            for (let i = 14; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                
+                const baseValue = 20 + Math.sin(i * 0.5) * 15;
+                actualData.push(Math.max(5, Math.min(85, baseValue + (Math.random() - 0.5) * 20)));
+                predictedData.push(Math.max(5, Math.min(85, baseValue + (Math.random() - 0.5) * 15)));
+            }
+            
+            predictionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Actual Risk',
+                            data: actualData,
+                            borderColor: '#2C3E50',
+                            backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'AI Prediction',
+                            data: predictedData,
+                            borderColor: '#FFC107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeReportCharts() {
+            // Risk Distribution Chart
+            const ctx1 = document.getElementById('riskDistribution');
+            if (ctx1) {
+                if (riskDistributionChart) {
+                    riskDistributionChart.destroy();
+                }
+                
+                riskDistributionChart = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                        datasets: [{
+                            data: [72, 23, 5],
+                            backgroundColor: ['#2ECC71', '#FFC107', '#E74C3C'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Monthly Trends Chart
+            const ctx2 = document.getElementById('monthlyTrends');
+            if (ctx2) {
+                if (monthlyTrendsChart) {
+                    monthlyTrendsChart.destroy();
+                }
+                
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                const alertCounts = [8, 12, 23, 15, 19, 14];
+                
+                monthlyTrendsChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Total Alerts',
+                            data: alertCounts,
+                            backgroundColor: '#2C3E50',
+                            borderColor: '#FFC107',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Report generation functions
+        function generateReport(type) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.innerHTML = '<span class="loading"></span> Generating...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+                
+                alert(`${type.charAt(0).toUpperCase() + type.slice(1)} report generated successfully!\n\nReport includes:\n- ${mineData.name} status\n- Weather analysis for ${mineData.location}\n- Risk analysis summary\n- Sensor data logs\n- Alert history\n- System performance metrics\n\nReport would be downloaded in a real implementation.`);
+            }, 2000);
+        }
+
+        function exportData(format) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.innerHTML = '<span class="loading"></span> Exporting...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+                
+                alert(`Data exported to ${format.toUpperCase()} format successfully!\n\nFile contains data for ${mineData.name}:\n- Weather trends\n- Seismic readings\n- AI predictions\n- Alert logs\n\nFile would be downloaded in a real implementation.`);
+            }, 1500);
+        }
+
+        // Contact form submission
+        function submitContact(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            submitButton.innerHTML = '<span class="loading"></span> Sending...';
+            submitButton.disabled = true;
+            
+            // Simulate form submission
+            setTimeout(() => {
+                submitButton.textContent = 'Send Message';
+                submitButton.disabled = false;
+                
+                alert('Thank you for your message! Our team will get back to you within 24 hours.');
+                form.reset();
+            }, 2000);
+        }
+
+        // Data refresh function
+        function refreshDashboardData() {
+            console.log('Refreshing dashboard data...');
+            
+            // Update mine info timestamp
+            mineData.lastUpdated = new Date();
+            updateMineInfoDisplay();
+            
+            // Fetch fresh weather data
+            fetchWeatherData(mineData.coordinates.lat, mineData.coordinates.lon);
+            
+            // Update sensor data
+            updateSensorData();
+            
+            // Update AI predictions
+            updateAIRisk();
+            
+            // Refresh charts if dashboard is visible
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                setTimeout(() => {
+                    initializeDashboardCharts();
+                }, 500);
+            }
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('MineX Platform initializing...');
+            
+            // Initialize mine and weather data
+            fetchMineInfo();
+            
+            // Set up periodic updates
+            setInterval(refreshDashboardData, 10 * 60 * 1000); // Update every 10 minutes
+            setInterval(updateSensorData, 15000); // Update sensor data every 15 seconds
+            setInterval(updateAIRisk, 20000); // Update AI risk every 20 seconds
+            
+            // Initial updates
+            setTimeout(() => {
+                updateSensorData();
+                updateAIRisk();
+            }, 1000);
+            
+            console.log('MineX Platform initialized successfully');
+        });
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey) {
+                switch(e.key) {
+                    case '1':
+                        showSection('home');
+                        break;
+                    case '2':
+                        showSection('dashboard');
+                        break;
+                    case '3':
+                        showSection('ai-prediction');
+                        break;
+                    case '4':
+                        showSection('reports');
+                        break;
+                    case '5':
+                        showSection('team');
+                        break;
+                    case '6':
+                        showSection('contact');
+                        break;
+                }
+            }
+        });
+
+        // Handle browser notifications
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Utility function for notifications
+        function showNotification(title, body, type = 'info') {
+            if (Notification.permission === 'granted') {
+                const icon = type === 'critical' ? '🚨' : type === 'warning' ? '⚠️' : 'ℹ️';
+                new Notification(title, {
+                    body: body,
+                    icon: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFC107"><text x="12" y="18" text-anchor="middle" font-size="16">${icon}</text></svg>`
+                });
+            }
+        }
+
+        // Export API for external use
+        window.MineXAPI = {
+            getCurrentMineInfo: () => ({ ...mineData }),
+            getCurrentWeather: () => ({ ...weatherData.current }),
+            getCurrentRisk: () => currentRiskLevel,
+            getCurrentStatus: () => currentOverallStatus,
+            getSensorData: () => ({ ...sensorData }),
+            refreshData: refreshDashboardData,
+            triggerTestAlert: () => {
+                showNotification('MineX Test Alert', 'This is a test notification from the MineX system.', 'warning');
+            }
+        };
+
+        console.log('MineX API available:', Object.keys(window.MineXAPI));
+    </script>
+</body>
+</html>
