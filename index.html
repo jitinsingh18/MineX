@@ -450,11 +450,14 @@
 
         /* Team Section */
         .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* Force 3 equal columns */
+    gap: 2rem;                               /* spacing between cards */
+    justify-items: center;                   /* center cards in each column */
+    max-width: 1100px;                       /* optional: constrain overall width */
+    margin: 2rem auto;                       /* center the whole grid */
+}
+
 
         .team-member {
             background: white;
@@ -630,6 +633,9 @@
                 min-width: unset;
                 width: 100%;
             }
+            .team-grid {
+        grid-template-columns: repeat(1, 1fr); /* single column on small screens */
+    }
         }
 
         /* Siren Audio Control */
@@ -1062,50 +1068,48 @@
         <section id="team" class="section">
             <h2 style="margin-bottom: 2rem; color: #2C3E50; text-align: center;">Team MineX</h2>
             <p style="text-align: center; margin-bottom: 3rem; font-size: 1.2rem; color: #666;">Smart India Hackathon 2024 - Innovating for Mine Safety</p>
-            
-            <div class="team-grid">
-                <div class="team-member">
-                    <div class="member-avatar">👨‍💻</div>
-                    <h3>Arjun Sharma</h3>
-                    <p style="color: #FFC107; font-weight: bold;">AI/ML Engineer</p>
-                    <p>Developed the LSTM prediction models and machine learning algorithms for rockfall prediction.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👩‍💻</div>
-                    <h3>Priya Patel</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Full Stack Developer</p>
-                    <p>Built the web platform, dashboard interface, and real-time data visualization components.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👨‍🔬</div>
-                    <h3>Raj Kumar</h3>
-                    <p style="color: #FFC107; font-weight: bold;">IoT Specialist</p>
-                    <p>Designed sensor integration, data collection systems, and hardware communication protocols.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👩‍🔬</div>
-                    <h3>Sneha Gupta</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Data Scientist</p>
-                    <p>Data preprocessing, feature engineering, and statistical analysis for model training.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👨‍💼</div>
-                    <h3>Vikram Singh</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Project Manager</p>
-                    <p>Project coordination, requirements analysis, and stakeholder communication.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👩‍💼</div>
-                    <h3>Kavya Reddy</h3>
-                    <p style="color: #FFC107; font-weight: bold;">UI/UX Designer</p>
-                    <p>User interface design, user experience optimization, and visual branding.</p>
-                </div>
-            </div>
+        <div class="team-grid">
+    <div class="team-member">
+        <div class="member-avatar">👩‍💼</div>
+        <h3>Khushi Tailor</h3>
+        <p style="color: #FFC107; font-weight: bold;">Team Lead & Coordinator</p>
+        <p>Ensures smooth workflow, manages project milestones, oversees documentation, and leads communication with mentors and stakeholders.</p>
+    </div>
+
+    <div class="team-member">
+        <div class="member-avatar">📊 🤖</div>
+        <h3>Utkarsh Sharma</h3>
+        <p style="color: #FFC107; font-weight: bold;">Presentation, AI/ML & IoT Support</p>
+        <p>Crafts impactful presentations, flow diagrams, and visual storytelling for SIH. Also assists in AI/ML model research and IoT sensor integration to strengthen the predictive system.</p>
+    </div>
+    <div class="team-member">
+        <div class="member-avatar">👨‍💻 🛰️</div>
+        <h3>Jitin Singh</h3>
+        <p style="color: #FFC107; font-weight: bold;">Domain Researcher & Dashboard Developer</p>
+        <p>Focuses on mining hazards and rockfall causes, collects case studies, and ensures real-world relevance. Also contributes to the development of the monitoring dashboard for accurate data visualization.</p>
+    </div>
+
+    <div class="team-member">
+        <div class="member-avatar">🤖</div>
+        <h3>Shreyansh Sharma</h3>
+        <p style="color: #FFC107; font-weight: bold;">AI/ML Engineer</p>
+        <p>Designs and implements predictive models using time-series forecasting, anomaly detection, and machine learning to estimate rockfall risk.</p>
+    </div>
+
+    <div class="team-member">
+        <div class="member-avatar">🛰️</div>
+        <h3>Jayant Goyal</h3>
+        <p style="color: #FFC107; font-weight: bold;">IoT & Sensors Lead</p>
+        <p>Works on integration of IoT devices and simulations (seismic vibrations, slope monitoring, weather sensors) for real-time data collection.</p>
+    </div>
+
+    <div class="team-member">
+        <div class="member-avatar">💻</div>
+        <h3>Devesh Jain</h3>
+        <p style="color: #FFC107; font-weight: bold;">App & Dashboard Developer</p>
+        <p>Develops the monitoring dashboard and alert system (web/mobile), integrates APIs, and ensures a seamless user experience for mine operators.</p>
+    </div>
+</div>
 
             <div class="card" style="margin-top: 3rem; text-align: center;">
                 <h3>🏆 Smart India Hackathon 2024</h3>
