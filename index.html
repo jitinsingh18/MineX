@@ -724,24 +724,44 @@
         <!-- Dashboard Section -->
         <section id="dashboard" class="section">
             <h2 style="margin-bottom: 2rem; color: #2C3E50;">Live Monitoring Dashboard</h2>
-            
+            <!-- Mine Selection Section -->
+<div class="form-group" style="max-width: 400px; margin-bottom: 2rem;">
+  <label for="mine-select">Select Mine in India</label>
+  <select id="mine-select" onchange="changeMine(this.value)">
+    <option value="kusmunda">Kusmunda Open-Pit Mine (Chhattisgarh)</option>
+    <option value="rampura">Rampura Agucha Mine (Rajasthan)</option>
+    <option value="jaduguda">Jaduguda Uranium Mine (Jharkhand)</option>
+    <option value="singrauli">Singrauli Coalfields (Madhya Pradesh)</option>
+    <option value="neyveli">Neyveli Lignite Mine (Tamil Nadu)</option>
+  </select>
+</div>
             <!-- Mine Information Card -->
             <div class="mine-info-card" id="mine-info-card">
                 <div class="mine-info-header">
-                    <div class="mine-details">
-                        <div class="mine-name" id="mine-name">Loading Mine Information...</div>
-                        <div class="mine-location" id="mine-location">Fetching location data...</div>
-                        <div class="mine-updated" id="mine-updated">Last Updated: --:--</div>
-                        <div class="data-freshness" id="data-freshness">
-                            <span class="status-dot status-online"></span>
-                            <span>Data fresh</span>
-                        </div>
-                    </div>
+<div class="mine-details">
+    <div class="mine-name" id="mine-name">Loading Mine Information...</div>
+    <div class="mine-location" id="mine-location">Fetching location data...</div>
+    <div class="mine-updated" id="mine-updated">Last Updated: --:--</div>
+    <div class="data-freshness" id="data-freshness">
+        <span class="status-dot status-online"></span>
+        <span>Data fresh</span>
+    </div>
+    <!-- Active Mine Workers Info -->
+    <div style="margin-top: 1rem;">
+        <span style="font-weight: bold; color: #FFC107; margin-left: 10;">Active Mine Workers:</span>
+        <span id="active-workers-count" style="font-weight: bold; color: #2ECC71;">--</span>
+        <button onclick="toggleWorkersDetails()" style="margin-left: 1rem; background: #FFC107; color: #1C1C1E; border: none; border-radius: 5px; padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.9rem;">Show Details</button>
+    </div>
+    <div id="workers-details" style="display: none; margin-top: 1rem;">
+        <!-- Worker details will be injected here -->
+    </div>
+</div>
                     <div class="mine-status" id="mine-status">
                         <div class="status-indicator">🟢</div>
                         <div class="status-text">OPERATIONAL</div>
                         <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">All systems active</div>
-                    </div>
+                    </div>   
+</div>
                 </div>
             </div>
 
@@ -783,6 +803,11 @@
                     <div style="font-size: 0.9rem; opacity: 0.8;" id="alert-description">All systems operational - No immediate threats detected</div>
                 </div>
             </div>
+            <!-- Alarm Test Button -->
+<div style="margin: 1rem 0; text-align: center;">
+    <button class="btn btn-yellow" onclick="triggerSiren()">🚨 Test Alarm System</button>
+</div>
+
 
             <!-- Dashboard Grid -->
             <div class="dashboard-grid">
@@ -1040,45 +1065,45 @@
             
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="member-avatar">👩‍💼</div>
-                    <h3>Khushi Tailor</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Team Lead & Coordinator</p>
-                    <p>Ensures smooth workflow, manages project milestones, oversees documentation, and leads communication with mentors and stakeholders.</p>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">👨🔬💻</div>
-                    <h3>Jitin Singh</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Domain Researcher & Dashboard Developer</p>
-                    <p>Focuses on mining hazards and rockfall causes, collects case studies, and ensures real-world relevance. Also contributes to the development of the monitoring dashboard for accurate data visualization.</p>
-                </div>
-                
-                <div class="team-member">
                     <div class="member-avatar">👨‍💻</div>
-                    <h3>Shreyansh Sharma</h3>
+                    <h3>Arjun Sharma</h3>
                     <p style="color: #FFC107; font-weight: bold;">AI/ML Engineer</p>
-                    <p>Designs and implements predictive models using time-series forecasting, anomaly detection, and machine learning to estimate rockfall risks.</p>
+                    <p>Developed the LSTM prediction models and machine learning algorithms for rockfall prediction.</p>
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">👨‍💻</div>
-                    <h3>Jayant Goyal</h3>
-                    <p style="color: #FFC107; font-weight: bold;">IoT & Sensors Lead</p>
-                    <p>Works on integration of IoT devices and simulations (seismic vibrations, slope monitoring, weather sensors) for real-time data collection.</p>
+                    <div class="member-avatar">👩‍💻</div>
+                    <h3>Priya Patel</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Full Stack Developer</p>
+                    <p>Built the web platform, dashboard interface, and real-time data visualization components.</p>
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">👨‍💻</div>
-                    <h3>Devesh Jain</h3>
-                    <p style="color: #FFC107; font-weight: bold;">App & Dashboard Developer</p>
-                    <p>Develops the monitoring dashboard and alert system (web/mobile), integrates APIs, and ensures a seamless user experience for mine operators</p>
+                    <div class="member-avatar">👨‍🔬</div>
+                    <h3>Raj Kumar</h3>
+                    <p style="color: #FFC107; font-weight: bold;">IoT Specialist</p>
+                    <p>Designed sensor integration, data collection systems, and hardware communication protocols.</p>
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">👨‍💼💻</div>
-                    <h3>Utkarsh Sharma</h3>
-                    <p style="color: #FFC107; font-weight: bold;">Presentation, AI/ML & IoT Support</p>
-                    <p>Crafts impactful presentations, flow diagrams, and visual storytelling for SIH. Also assists in AI/ML model research and IoT sensor integration to strengthen the predictive system.</p>
+                    <div class="member-avatar">👩‍🔬</div>
+                    <h3>Sneha Gupta</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Data Scientist</p>
+                    <p>Data preprocessing, feature engineering, and statistical analysis for model training.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💼</div>
+                    <h3>Vikram Singh</h3>
+                    <p style="color: #FFC107; font-weight: bold;">Project Manager</p>
+                    <p>Project coordination, requirements analysis, and stakeholder communication.</p>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">👩‍💼</div>
+                    <h3>Kavya Reddy</h3>
+                    <p style="color: #FFC107; font-weight: bold;">UI/UX Designer</p>
+                    <p>User interface design, user experience optimization, and visual branding.</p>
                 </div>
             </div>
 
@@ -1247,7 +1272,110 @@
             lastUpdated: new Date(),
             status: 'OPERATIONAL'
         };
+        // List of mines in India
+const mineOptions = {
+  kusmunda: { name: 'Kusmunda Open-Pit Mine', location: 'Korba, Chhattisgarh', coordinates: { lat: 22.3511, lon: 82.6677 } },
+  rampura: { name: 'Rampura Agucha Mine', location: 'Bhilwara, Rajasthan', coordinates: { lat: 25.8500, lon: 74.7333 } },
+  jaduguda: { name: 'Jaduguda Uranium Mine', location: 'East Singhbhum, Jharkhand', coordinates: { lat: 22.6500, lon: 86.3500 } },
+  singrauli: { name: 'Singrauli Coalfields', location: 'Singrauli, Madhya Pradesh', coordinates: { lat: 24.2000, lon: 82.6667 } },
+  neyveli: { name: 'Neyveli Lignite Mine', location: 'Cuddalore, Tamil Nadu', coordinates: { lat: 11.6167, lon: 79.4833 } }
+};
 
+function changeMine(mineKey) {
+  mineData = {
+    ...mineOptions[mineKey],
+    lastUpdated: new Date(),
+    status: 'OPERATIONAL'
+  };
+
+  // Update workers according to selected mine
+  const mineName = mineOptions[mineKey].name + " (" + mineOptions[mineKey].location.split(', ')[1] + ")";
+  mineWorkers = mineWorkersData[mineName] || [];
+
+  updateMineInfoDisplay();
+  fetchWeatherData(mineData.coordinates.lat, mineData.coordinates.lon);
+  initializeMap();
+}
+
+
+        
+let mineWorkersData = {};
+let mineWorkers = [];
+
+// Function to load workers from CSV
+async function loadWorkers() {
+  const response = await fetch('workers.csv');
+  const data = await response.text();
+  
+  const rows = data.split('\n').slice(1); // skip header
+  rows.forEach(row => {
+    if (!row.trim()) return; // skip empty lines
+    const [Mine, Name, Role, Contact, Status, Location] = row.split(',');
+
+    if (!mineWorkersData[Mine]) {
+      mineWorkersData[Mine] = [];
+    }
+
+    if (Status.trim() === "Active") {
+  mineWorkersData[Mine].push({
+    name: Name,
+    role: Role,
+    contact: Contact,
+    status: Status,
+    location: Location
+  });
+}
+
+  });
+
+  // Default load Kusmunda
+  mineWorkers = mineWorkersData["Kusmunda Open-Pit Mine (Chhattisgarh)"];
+  updateMineInfoDisplay();
+}
+
+// Call loader on page start
+loadWorkers();
+
+
+function updateWorkersDisplay() {
+    document.getElementById('active-workers-count').textContent = mineWorkers.length;
+    const detailsDiv = document.getElementById('workers-details');
+   let html = `<table style="width:100%; border-collapse:collapse; margin-top:0.5rem; text-align:center;">
+        <thead>
+            <tr style="background:#23272A;">
+                <th style="padding:0.5rem; border-bottom:1px solid #444; color:#FFC107; text-align:center; vertical-align:middle;">Name</th>
+                <th style="padding:0.5rem; border-bottom:1px solid #444; color:#FFC107; text-align:center; vertical-align:middle;">Role</th>
+                <th style="padding:0.5rem; border-bottom:1px solid #444; color:#FFC107; text-align:center; vertical-align:middle;">Contact</th>
+                <th style="padding:0.5rem; border-bottom:1px solid #444; color:#FFC107; text-align:center; vertical-align:middle;">Location</th>
+                <th style="padding:0.5rem; border-bottom:1px solid #444; color:#FFC107; text-align:center; vertical-align:middle;">Status</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    mineWorkers.forEach(worker => {
+        html += `<tr style="background:#1C1C1E;">
+            <td style="padding:0.5rem; border-bottom:1px solid #23272A; color:#FFD54F; font-weight:600;">${worker.name}</td>
+            <td style="padding:0.5rem; border-bottom:1px solid #23272A; color:#FFD54F; font-weight:600;">${worker.role}</td>
+            <td style="padding:0.5rem; border-bottom:1px solid #23272A; color:#FFD54F; font-weight:600;">${worker.contact}</td>
+            <td style="padding:0.5rem; border-bottom:1px solid #23272A; color:#FFD54F; font-weight:600;">${worker.location}</td>
+            <td style="padding:0.5rem; border-bottom:1px solid #23272A; font-weight:600; color:${worker.status === "Active" ? "#2ECC71" : "#E74C3C"};">${worker.status}</td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    detailsDiv.innerHTML = html;
+}
+// ...existing code...
+
+function toggleWorkersDetails() {
+    const detailsDiv = document.getElementById('workers-details');
+    if (detailsDiv.style.display === "none" || detailsDiv.style.display === "") {
+        detailsDiv.style.display = "block";
+        updateWorkersDisplay();
+        event.target.textContent = "Hide Details";
+    } else {
+        detailsDiv.style.display = "none";
+        event.target.textContent = "Show Details";
+    }
+}
         let weatherData = {
             current: {
                 temperature: 28,
@@ -1309,6 +1437,7 @@
                     lastUpdated: new Date(apiResponse.lastUpdated),
                     status: apiResponse.status
                 };
+
 
                 updateMineInfoDisplay();
                 await fetchWeatherData(mineData.coordinates.lat, mineData.coordinates.lon);
@@ -1389,7 +1518,7 @@
 
                 updateWeatherDisplay();
                 updateDashboardWeather();
-                
+                initializeDashboardCharts();
             } catch (error) {
                 console.error('Error fetching weather data:', error);
                 // Use fallback weather data
@@ -1413,6 +1542,7 @@
             } else {
                 dataFreshnessElement.innerHTML = '<span class="status-dot status-offline"></span><span class="data-stale">Data stale</span>';
             }
+            updateWorkersDisplay();
         }
 
         function updateWeatherDisplay() {
